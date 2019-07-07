@@ -80,19 +80,18 @@ architecture Behaviour of Briscola is
 		DECIDI_CARTA		: out std_logic;
 		INVIA_RISULTATO 	: out std_logic;
 		NUOVO_TURNO			: out std_logic;
-		PENULTIMO_TURNO	: out std_logic
+		PENULTIMO_TURNO		: out std_logic
 	);
 	end component;
 	
 	signal mano_ricevuta_cpu	: std_logic;
 	signal token_ricevuto_cpu	: std_logic;
-	signal cpu_presa				: std_logic;
-	signal calcola_presa			: std_logic;
+	signal cpu_presa			: std_logic;
+	signal calcola_presa		: std_logic;
 	signal decidi_carta_cpu		: std_logic;
 	signal invia_punti			: std_logic;
 	signal turno_nuovo			: std_logic;
 	signal turno_penultimo		: std_logic;
-	--//signal tasto_pressato		: std_logic;
 	
 begin
 	controller : Briscola_Controller 

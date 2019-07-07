@@ -45,19 +45,22 @@ entity Briscola_Datapath is
 end entity;
 
 architecture RTL of Briscola_Datapath is
-	signal punti_cpu								: integer;
-	signal punti_player 							: integer;
-	signal mano										: mano_cpu;
+	signal punti_cpu							: integer;
+	signal punti_player 						: integer;
+	signal mano									: mano_cpu;
 	signal briscola_partita						: carta;
 	signal carta_giocata_pl						: carta;
 	signal carta_giocata_cpu 					: carta;
-	signal AZZERA_CARTE_GIOCATE				: std_logic;
+	signal AZZERA_CARTE_GIOCATE					: std_logic;
 	signal ASSEGNA_CARTA_GIOCATA_CPU			: std_logic;
-	signal ASSEGNA_CARTA_GIOCATA_PLAYER		: std_logic;
-	signal ASSEGNA_DATA_TRASMITTED_CARTA	: std_logic;
-	signal ASSEGNA_DATA_TRASMITTED_TOKEN	: std_logic;
+	signal ASSEGNA_CARTA_GIOCATA_PLAYER			: std_logic;
+--	signal ASSEGNA_DATA_TRASMITTED_TOKEN_INT	: std_logic;
+--	signal ASSEGNA_DATA_TRASMITTED_TOKEN_PRESA	: std_logic;
+	signal FINE_TURNO							: std_logic;
 	signal sig_carta_da_lanciare_cpu			: carta;
-	signal sig_carta_giocata_pl				: carta;
+	signal sig_carta_giocata_pl					: carta;
+	signal sig_token_int						: std_logic_vector(0 to 7) := (others => '0');
+	signal sig_token_presa						: std_logic_vector(0 to 7) := (others => '0');
 	
 	signal data_transmitted 		: std_logic_vector(0 to 7);
 	signal data_transmitted_carta 	: std_logic_vector(0 to 7);
@@ -93,7 +96,7 @@ begin
 	begin
 		if(rising_edge(CLOCK)) then
 			if(NUOVO_TURNO = '1') then 
-				AZZERA_CARTE_GIOCATE <= '1';
+				AZZERA_CARTE_GIOCATE <= NUOVO_TURNO;
 			end if;
 		end if;
 	
@@ -103,8 +106,8 @@ begin
 		variable mano_counter	: integer := 0;
 		variable carta_ricevuta	: carta;
 		variable briscola 		: boolean;
-		variable seme_carta 		: seme; 
-		variable numero 			: integer;
+		variable seme_carta 	: seme; 
+		variable numero 		: integer;
 		variable valore			: integer;
 		variable carta_reset 	: carta := (0, DENARI, 0, false);
 	begin
@@ -154,7 +157,7 @@ begin
 						mano(mano_counter) <= carta_ricevuta;
 					else
 						sig_carta_giocata_pl <= carta_ricevuta;
-						ASSEGNA_CARTA_GIOCATA_PLAYER <= '1';
+						--ASSEGNA_CARTA_GIOCATA_PLAYER <= '1';
 					end if;
 		
 					mano_counter := mano_counter + 1;
@@ -180,8 +183,7 @@ begin
 		end if;
 	end process;
 	
-	CardManagement : process(CLOCK, AZZERA_CARTE_GIOCATE, ASSEGNA_CARTA_GIOCATA_CPU, ASSEGNA_CARTA_GIOCATA_PLAYER, 
-									ASSEGNA_DATA_TRASMITTED_CARTA, ASSEGNA_DATA_TRASMITTED_TOKEN) is
+	CardManagement : process(CLOCK, AZZERA_CARTE_GIOCATE, ASSEGNA_CARTA_GIOCATA_CPU, ASSEGNA_CARTA_GIOCATA_PLAYER) is
 		variable carta_reset : carta := (0, DENARI, 0, false);		-- questo process di supporto morale si occupa di assegnare i valori ai registri delle carte
 	begin															-- perchè non è possibile assegnare un valore agli stessi registri in process diversi
 		if(rising_edge(CLOCK)) then
@@ -192,13 +194,19 @@ begin
 				carta_giocata_cpu <= sig_carta_da_lanciare_cpu;
 			elsif(ASSEGNA_CARTA_GIOCATA_PLAYER = '1') then
 				carta_giocata_pl <= sig_carta_giocata_pl;
+--			elsif(ASSEGNA_DATA_TRASMITTED_TOKEN_INT = '1') then
+--				--data_transmitted_token <= sig_token_int;
+--			elsif(ASSEGNA_DATA_TRASMITTED_TOKEN_PRESA = '1') then
+				--data_transmitted_token <= sig_token_presa;
 			end if;
 		end if;
 	
 	end process;
 	
-	--
-	DecidiCarta : process(CLOCK, RESET, DECIDI_CARTA, PENULTIMO_TURNO) is 
+	LCD1 <= numberTo7SegmentDisplay(sig_carta_giocata_pl.numero);
+	LCD3 <= numberTo7SegmentDisplay(sig_carta_da_lanciare_cpu.numero);
+	
+	DecidiCarta : process(CLOCK, RESET, DECIDI_CARTA, PENULTIMO_TURNO, FINE_TURNO, sig_carta_giocata_pl) is 
 		variable carta_reset 		: carta := (0, DENARI, 0, false);
 		variable carta_da_lanciare 	: carta;
 		variable num_carichi 		: integer := 0;
@@ -208,7 +216,7 @@ begin
 	begin
 		if(rising_edge(CLOCK)) then
 	
-		if(DECIDI_CARTA = '1') then 
+			if(DECIDI_CARTA = '1') then
 				if(PENULTIMO_TURNO = '0') then
 					if(carta_giocata_pl.numero = 0) then 
 						if(isLiscio(mano)) then 
@@ -219,82 +227,81 @@ begin
 							indice := determinaSituazioneNoLisci(num_carichi, num_briscole, mano);
 						end if; --IS LISCIO
 					else
-						indice := decidiCartaFase2(mano, carta_giocata_pl);
+						indice := decidiCartaFase2(mano, sig_carta_giocata_pl);
 					end if; -- FASE 1 o FASE 2
 				else -- PENULTIMO_TURNO = 1 
-					indice := decidiPenultimo(mano, briscola_partita);				
+					indice := decidiPenultimo(mano, briscola_partita);			
 				end if; -- GIOCATA NORMALE
 				
 				carta_da_lanciare := mano(indice);
 				sig_carta_da_lanciare_cpu <= carta_da_lanciare;
-				LCD3 <= numberTo7SegmentDisplay(carta_da_lanciare.numero);
-				LCD1 <= numberTo7SegmentDisplay(sig_carta_giocata_pl.numero);
 				ASSEGNA_CARTA_GIOCATA_CPU <= '1';
 				data_transmitted_carta <= fromCartaToByte(carta_da_lanciare);
 				TX_ENABLE_CARTA <= TASTO_PREMUTO;
 				-- ASSEGNA_DATA_TRASMITTED_CARTA <= '1';
 				--LEDGREEN <= data_transmitted_carta;
 				if((carta_da_lanciare.numero > 0) AND (sig_carta_giocata_pl.numero > 0)) then
+					sig_token_int <= "00000000";
 					VALUTA_PRESA <= '1';
-				else 
+					--ASSEGNA_DATA_TRASMITTED_TOKEN_INT <= '0';
+				else
+					sig_token_int <= reverse_vector("01110101");
 					VALUTA_PRESA <= '0';
+					--ASSEGNA_DATA_TRASMITTED_TOKEN_INT <= DECIDI_CARTA;
 				end if;
 				
 			else
 				ASSEGNA_CARTA_GIOCATA_CPU <= '0';
 				--ASSEGNA_DATA_TRASMITTED_CARTA <= '0';
 			end if; -- DECIDI CARTA
+			if(FINE_TURNO = '1') then
+				VALUTA_PRESA <= NOT FINE_TURNO;
+			end if;
 		end if;
 	end process;
 	
-	--ValutaPuntiPresa : process(CLOCK, FINE_MANO) is	
-	ValutaeInviaRisultato : process(CLOCK, INVIA_RISULTATO) is
-		variable carta_reset 	: carta := (0, DENARI, 0, false);
+	ValutaeInviaRisultato : process(CLOCK, INVIA_RISULTATO, sig_carta_da_lanciare_cpu, sig_carta_giocata_pl) is
 		variable risultato 		: boolean;
-		variable byte_result		: std_logic_vector (0 to 7);
-		variable byte_sent 		: boolean := false;
+		variable byte_result	: std_logic_vector (0 to 7);
 		
 	begin 
 		if(rising_edge(CLOCK)) then
 			if(INVIA_RISULTATO = '1') then 
 				if((sig_carta_da_lanciare_cpu.numero > 0) AND (sig_carta_giocata_pl.numero > 0)) then 
-					risultato := valutaPresa(carta_giocata_cpu, carta_giocata_pl);
+					risultato := valutaPresa(sig_carta_da_lanciare_cpu, sig_carta_giocata_pl);
 					if(risultato) then 
-						punti_cpu <= punti_cpu + carta_giocata_cpu.valore + carta_giocata_pl.valore;
+						punti_cpu <= punti_cpu + sig_carta_da_lanciare_cpu.valore + sig_carta_giocata_pl.valore;
 						byte_result := "00001111"; -- non tocca al giocatore, ha preso la CPU
 					else
-						punti_player <= punti_player + carta_giocata_cpu.valore + carta_giocata_pl.valore;
+						punti_player <= punti_player + sig_carta_da_lanciare_cpu.valore + sig_carta_giocata_pl.valore;
 						byte_result := "01110000"; -- tocca al giocatore, ha preso il giocatore
 					end if;
-
-					if(byte_sent) then 
-						--TX_ENABLE_TOKEN <= '0';
-					else 
-						data_transmitted_token <= reverse_vector(byte_result);
-						--ASSEGNA_DATA_TRASMITTED_TOKEN <= '1';
-						TX_ENABLE_TOKEN <= INVIA_RISULTATO;
-						byte_sent := true;		
-					end if;
-				--else 
-					--ASSEGNA_DATA_TRASMITTED_TOKEN <= '0';
+					
+					TX_ENABLE_TOKEN <= INVIA_RISULTATO;
+					sig_token_presa <= reverse_vector(byte_result);
+					FINE_TURNO <= '1';
+					--ASSEGNA_DATA_TRASMITTED_TOKEN_PRESA <= '1';
+				else 
+					FINE_TURNO <= '0';
+					sig_token_presa <= "00000000";
+					--ASSEGNA_DATA_TRASMITTED_TOKEN_PRESA <= '0';
 				end if;
 			end if;
 		end if;
 	
 	end process;
-	
-	--LEDGREEN <= data_transmitted_token;
+	data_transmitted_token <= sig_token_int OR sig_token_presa;
+	LEDGREEN <= data_transmitted_token;
 	
 --	LEDGREEN(7) <= TX_ENABLE_CARTA;			
 --	LEDGREEN(6) <= TX_ENABLE_TOKEN;
-	LEDGREEN <= data_transmitted_token;
 	
 	InviaByte : process(CLOCK, TX_ENABLE_CARTA, TX_ENABLE_TOKEN) is
 		-- Variabili per la trasmissione
 		variable count 				: integer range 0 to 5207 	:= 5207; 	--9600 baud generator variable (50MHz/9600)
-		variable bit_number 			: integer range 0 to 10 	:= 0;  		--start bit+8 data bits+stop bit
-		variable count_tk 			: integer range 0 to 5207 	:= 5207; 	--9600 baud generator variable (50MHz/9600)
-		variable bit_number_tk		: integer range 0 to 10 	:= 0;  		--start bit+8 data bits+stop bit
+		variable bit_number 		: integer range 0 to 10 	:= 0;  		--start bit+8 data bits+stop bit
+		variable count_tk 			: integer range 0 to 5207 	:= 5207; 	--9600 baud generator variable (50MHz/9600) for token
+		variable bit_number_tk		: integer range 0 to 10 	:= 0;  		--start bit+8 data bits+stop bit for token
 		variable byte_not_sent 		: boolean 						:= true;
 		variable byte_not_sent_tk 	: boolean 						:= true;
 		variable card_sent			: boolean						:= false;

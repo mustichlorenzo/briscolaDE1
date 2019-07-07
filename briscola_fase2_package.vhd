@@ -49,8 +49,6 @@ package body briscola_fase2_package is
 					if(mano(i).valore > cartaTerra.valore AND mano(i).valore >= cartaCorrente.valore) then 
 						indice := i;
 						cartaCorrente := mano(i);
-					elsif(mano(i).valore = cartaTerra.valore AND mano(i).numero > cartaTerra.numero) then 
-						indice := i;
 					end if;
 				end if;
 			end if;
