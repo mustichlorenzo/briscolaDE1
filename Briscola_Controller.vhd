@@ -9,8 +9,8 @@ use briscola_utility_package.briscola_utility_package.all;
 
 entity Briscola_Controller is
 	port (
-		CLOCK					: in std_logic;
-		RESET					: in std_logic;
+		CLOCK				: in std_logic;
+		RESET				: in std_logic;
 		
 		LEDRED				: out std_logic_vector(0 to 9);
 		LCD_STATO			: out std_logic_vector(0 to 6);
@@ -34,7 +34,7 @@ architecture RTL of Briscola_Controller is
 								S_ASPETTO_TOKEN, S_INVIA_RISULTATO);
 		signal s_current : s_briscola := S_IDLE; 
 begin
-		
+	
 	LEDRED(3) <= MANO_RICEVUTA;
 	LEDRED(2) <= TOKEN_CPU;
 	LEDRED(1) <= PRESA_CPU;
@@ -91,20 +91,20 @@ begin
 						s_current <= S_DECIDI_LANCIA_CARTA;
 					else
 						tasto_premuto := true;
-						if(tasto_premuto) then
-							if(TOKEN_CPU = '1' AND VALUTA_PRESA = '1') then
-								s_current <= S_INVIA_RISULTATO;
-								DECIDI_CARTA <= '0';
-								INVIA_RISULTATO <= '1';
-								NUOVO_TURNO <= '0';
-							elsif(TOKEN_CPU = '0') then
-								s_current <= S_ASPETTO_TOKEN;
-								DECIDI_CARTA <= '0';
-								INVIA_RISULTATO <= '0';
-								NUOVO_TURNO <= '0';
-							else 
-								s_current <= S_DECIDI_LANCIA_CARTA;
-							end if;
+					end if;
+					if(TOKEN_CPU = '0') then
+							s_current <= S_ASPETTO_TOKEN;
+							DECIDI_CARTA <= '0';
+							INVIA_RISULTATO <= '0';
+							NUOVO_TURNO <= '0';
+					elsif(tasto_premuto) then
+						if(TOKEN_CPU = '1' AND VALUTA_PRESA = '1') then
+							s_current <= S_INVIA_RISULTATO;
+							DECIDI_CARTA <= '0';
+							INVIA_RISULTATO <= '1';
+							NUOVO_TURNO <= '0';
+						else 
+							s_current <= S_DECIDI_LANCIA_CARTA;
 						end if;
 					end if;
 				
@@ -112,7 +112,7 @@ begin
 				when S_ASPETTO_TOKEN =>
 					LCD_STATO <= numberTo7SegmentDisplay(3);
 					
-					if(TOKEN_CPU = '1' AND VALUTA_PRESA = '1') then
+					if(TOKEN_CPU = '1') then
 						s_current <= S_INVIA_RISULTATO;
 						DECIDI_CARTA <= '0';
 						INVIA_RISULTATO <= '1';
@@ -128,7 +128,7 @@ begin
 				when S_INVIA_RISULTATO =>
 					LCD_STATO <= numberTo7SegmentDisplay(4);
 					
-					if(VALUTA_PRESA = '0') then
+					if(VALUTA_PRESA = '0' AND TASTO_PIGIATO = '1') then
 						s_current <= S_MANO_RICEVUTA;
 						DECIDI_CARTA <= '0';
 						INVIA_RISULTATO <= '0';
