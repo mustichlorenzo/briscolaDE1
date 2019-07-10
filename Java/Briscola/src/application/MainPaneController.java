@@ -315,15 +315,15 @@ public class MainPaneController implements ReceiveCartaEventListener{
 				this.rectPlayer.setVisible(true);
 				this.rectCPU.setVisible(false);
 				this.gameTracker.nuovoTurno();
-				//this.serialAdapter.sendNextCard(this.mazzo.getNextCard()); //mettere la nuova carta nella mano
-				this.serialAdapter.writeToSerialPort(this.gameTracker.getStarterToken());
+				this.serialAdapter.writeToSerialPort(this.gameTracker.getResetToken());
+				this.serialAdapter.sendNextCard(this.mazzo.getNextCard()); //mettere la nuova carta nella mano
 				this.playCardButton.setDisable(false);
 			} else {	//ha preso la CPU
 				this.rectPlayer.setVisible(false);
 				this.rectCPU.setVisible(true);
 				this.gameTracker.nuovoTurno();
-				//this.serialAdapter.sendNextCard(this.mazzo.getNextCard());  //mettere la nuova carta nella mano
-				this.serialAdapter.writeToSerialPort(this.gameTracker.getStarterToken());
+				this.serialAdapter.writeToSerialPort(this.gameTracker.getResetToken());
+				this.serialAdapter.sendNextCard(this.mazzo.getNextCard());  //mettere la nuova carta nella mano
 				this.mazzo.getNextCard();	//mettere la nuova carta nella mano
 			}
 		}

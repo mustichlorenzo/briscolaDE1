@@ -33,7 +33,7 @@ public class InputParser {
 					int byteToIntSeme = (int) (app & 0x03);		//and binario con 00000011 per ricavare il seme della carta (bit 5 e 6)
 					Seme seme = Seme.values()[byteToIntSeme];
 					app = frame;
-					app = (byte) (app >>> 3);					//shift a dx di 3 bit (tolgo i 3 giÃ  analizzati)
+					app = (byte) (app >>> 3);					//shift a dx di 3 bit (tolgo i 3 già analizzati)
 					int valoreCarta = (int) (app & 0x0F);		//and binario con 00001111 per ricavare il numero della carta
 					try{
 						c = new Carta(valoreCarta, seme);
