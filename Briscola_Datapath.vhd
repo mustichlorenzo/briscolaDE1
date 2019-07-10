@@ -87,21 +87,21 @@ begin
 --	LEDGREEN(4) <= TASTO_PREMUTO;
 --	LEDGREEN(3) <= DECIDI_CARTA;
 --	LEDGREEN(2) <= INVIA_RISULTATO;
-	LEDGREEN(1) <= NUOVO_TURNO;
+--	LEDGREEN(1) <= NUOVO_TURNO;
 --	LEDGREEN(0) <= PENULTIMO_TURNO;
 		
 	rx : UART_RX port map(CLOCK, RX_LINE, data_valid_RX, data_received);
 
 	--
-	NuovoTurno : process(CLOCK, RESET, NUOVO_TURNO) is
-	begin
-		if(rising_edge(CLOCK)) then
-			if(NUOVO_TURNO = '1') then 
-				AZZERA_CARTE_GIOCATE <= NUOVO_TURNO;
-			end if;
-		end if;
-	
-	end process;
+--	NuovoTurno : process(CLOCK, RESET, NUOVO_TURNO) is
+--	begin
+--		if(rising_edge(CLOCK)) then
+--			if(NUOVO_TURNO = '1') then 
+--				AZZERA_CARTE_GIOCATE <= NUOVO_TURNO;
+--			end if;
+--		end if;
+--	
+--	end process;
 	
 	RiceviMano: process(CLOCK, RESET, NUOVO_TURNO)
 		variable mano_counter	: integer := 0;
@@ -309,8 +309,8 @@ begin
 					FINE_TURNO <= '1';
 					--ASSEGNA_DATA_TRASMITTED_TOKEN_PRESA <= '1';
 				else 
-					FINE_TURNO <= '0';
 					sig_token_presa <= "00000000";
+					FINE_TURNO <= '0';
 					--ASSEGNA_DATA_TRASMITTED_TOKEN_PRESA <= '0';
 				end if;
 			end if;
@@ -319,7 +319,7 @@ begin
 	end process;
 
 	data_transmitted_token <= sig_token_int OR sig_token_presa;
---	LEDGREEN <= data_transmitted_token;
+	LEDGREEN <= data_received;
 	
 --	LEDGREEN(7) <= TX_ENABLE_CARTA;			
 --	LEDGREEN(6) <= TX_ENABLE_TOKEN;
