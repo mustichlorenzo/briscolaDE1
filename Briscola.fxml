@@ -1,0 +1,287 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.geometry.Insets?>
+<?import javafx.scene.control.Button?>
+<?import javafx.scene.control.Label?>
+<?import javafx.scene.control.RadioButton?>
+<?import javafx.scene.control.TextField?>
+<?import javafx.scene.control.ToggleGroup?>
+<?import javafx.scene.image.Image?>
+<?import javafx.scene.image.ImageView?>
+<?import javafx.scene.layout.AnchorPane?>
+<?import javafx.scene.layout.BorderPane?>
+<?import javafx.scene.layout.HBox?>
+<?import javafx.scene.layout.VBox?>
+<?import javafx.scene.shape.Rectangle?>
+<?import javafx.scene.text.Font?>
+
+<AnchorPane fx:id="mainPane" maxHeight="-Infinity" maxWidth="-Infinity" minHeight="-Infinity" minWidth="-Infinity" prefHeight="600.0" prefWidth="800.0" xmlns="http://javafx.com/javafx/10.0.1" xmlns:fx="http://javafx.com/fxml/1" fx:controller="application.MainPaneController">
+   <children>
+      <BorderPane fx:id="choosePane" prefHeight="600.0" prefWidth="800.0" style="-fx-background-color: green;" visible="false">
+         <top>
+            <Label text="Chi inizia il gioco?" textFill="#f2eded" BorderPane.alignment="CENTER">
+               <font>
+                  <Font size="50.0" />
+               </font>
+               <BorderPane.margin>
+                  <Insets top="20.0" />
+               </BorderPane.margin>
+            </Label>
+         </top>
+         <center>
+            <HBox alignment="TOP_CENTER" BorderPane.alignment="CENTER">
+               <children>
+                  <RadioButton fx:id="computerRadioButton" mnemonicParsing="false" selected="true" text="Computer" textFill="#dddbdb">
+                     <font>
+                        <Font size="30.0" />
+                     </font>
+                     <HBox.margin>
+                        <Insets right="30.0" />
+                     </HBox.margin>
+                     <toggleGroup>
+                        <ToggleGroup fx:id="whoStarts" />
+                     </toggleGroup>
+                  </RadioButton>
+                  <RadioButton fx:id="playerRadioButton" mnemonicParsing="false" textFill="WHITE" toggleGroup="$whoStarts">
+                     <font>
+                        <Font size="30.0" />
+                     </font>
+                  </RadioButton>
+               </children>
+               <BorderPane.margin>
+                  <Insets top="150.0" />
+               </BorderPane.margin>
+            </HBox>
+         </center>
+         <bottom>
+            <Button fx:id="giocaButton" mnemonicParsing="false" onAction="#onClickGiocaButton" prefHeight="100.0" prefWidth="239.0" text="Gioca!" BorderPane.alignment="CENTER">
+               <font>
+                  <Font size="40.0" />
+               </font>
+               <BorderPane.margin>
+                  <Insets bottom="50.0" />
+               </BorderPane.margin>
+            </Button>
+         </bottom>
+      </BorderPane>
+      <BorderPane id="StartPane" fx:id="startPane" layoutX="112.0" layoutY="72.0" prefHeight="600.0" prefWidth="800.0" style="-fx-background-color: green;" visible="false" AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0">
+         <top>
+            <Label alignment="CENTER" graphicTextGap="5.0" style="-fx-background-color: transparent;" text="BriscolaFPGA" textFill="#f2eeee" textOverrun="CLIP" BorderPane.alignment="CENTER">
+               <font>
+                  <Font name="DejaVu Sans Bold" size="30.0" />
+               </font>
+               <BorderPane.margin>
+                  <Insets top="15.0" />
+               </BorderPane.margin>
+               <graphic>
+                  <ImageView fitHeight="40.0" fitWidth="47.0" pickOnBounds="true" preserveRatio="true">
+                     <image>
+                        <Image url="@../../../../Scrivania/BriscolaFPGA/carte/card-backwards.png" />
+                     </image>
+                  </ImageView>
+               </graphic>
+            </Label>
+         </top>
+         <bottom>
+            <Label alignment="CENTER" graphicTextGap="5.0" text="Creato da Alessandro Paoletti, Lorenzo Mustich, Alessandro Morabito - Università Di Bologna" textFill="#f8f5f5" BorderPane.alignment="CENTER">
+               <font>
+                  <Font name="DejaVu Sans Mono Bold" size="10.0" />
+               </font>
+               <BorderPane.margin>
+                  <Insets bottom="5.0" />
+               </BorderPane.margin>
+            </Label>
+         </bottom>
+         <left>
+            <ImageView fitHeight="178.0" fitWidth="128.0" pickOnBounds="true" preserveRatio="true" BorderPane.alignment="CENTER">
+               <image>
+                  <Image url="@../../../carte/napoletane/01_basto.png" />
+               </image>
+               <BorderPane.margin>
+                  <Insets left="30.0" top="20.0" />
+               </BorderPane.margin>
+            </ImageView>
+         </left>
+         <right>
+            <ImageView fitHeight="178.0" fitWidth="128.0" pickOnBounds="true" preserveRatio="true" BorderPane.alignment="CENTER">
+               <image>
+                  <Image url="@../../../carte/napoletane/01_denar.png" />
+               </image>
+               <BorderPane.margin>
+                  <Insets right="30.0" top="20.0" />
+               </BorderPane.margin>
+            </ImageView>
+         </right>
+         <center>
+            <VBox alignment="TOP_CENTER" prefHeight="200.0" prefWidth="100.0" BorderPane.alignment="CENTER">
+               <children>
+                  <HBox alignment="CENTER" prefHeight="42.0" prefWidth="342.0">
+                     <children>
+                        <Label prefHeight="16.0" prefWidth="150.0" text="Giocatore: " textFill="#ebebeb">
+                           <HBox.margin>
+                              <Insets top="4.0" />
+                           </HBox.margin>
+                        </Label>
+                        <TextField fx:id="playerNameTextArea" prefHeight="26.0" prefWidth="360.0">
+                           <HBox.margin>
+                              <Insets left="5.0" />
+                           </HBox.margin>
+                        </TextField>
+                     </children>
+                     <VBox.margin>
+                        <Insets bottom="20.0" top="40.0" />
+                     </VBox.margin>
+                  </HBox>
+                  <Button alignment="CENTER" contentDisplay="CENTER" graphicTextGap="5.0" mnemonicParsing="false" onAction="#onClickStartButton" prefHeight="100.0" prefWidth="220.0" text="Brìscola!" VBox.vgrow="NEVER">
+                     <font>
+                        <Font name="Lucida Sans Demibold" size="32.0" />
+                     </font>
+                     <VBox.margin>
+                        <Insets top="120.0" />
+                     </VBox.margin>
+                  </Button>
+                  <Label alignment="TOP_CENTER" prefHeight="38.0" prefWidth="512.0" text="&quot;La Briscola. Gioco molto semplice. L'avversario sbatte sul tavolo una carta, e voi dovete sbatterla più forte.&quot;  S.Benni, &quot;Bar Sport&quot;, 1976" textAlignment="CENTER" textFill="WHITE" wrapText="true">
+                     <VBox.margin>
+                        <Insets top="70.0" />
+                     </VBox.margin>
+                     <font>
+                        <Font name="Lucida Bright Italic" size="14.0" />
+                     </font>
+                  </Label>
+               </children>
+               <BorderPane.margin>
+                  <Insets top="10.0" />
+               </BorderPane.margin>
+            </VBox>
+         </center>
+      </BorderPane>
+      <BorderPane fx:id="gamePane" prefHeight="600.0" prefWidth="800.0" style="-fx-background-color: green;">
+         <top>
+            <HBox alignment="CENTER" prefHeight="150.0" prefWidth="606.0" BorderPane.alignment="CENTER">
+               <children>
+                  <ImageView fx:id="cardImageComputer1" fitHeight="150.0" fitWidth="150.0" pickOnBounds="true" preserveRatio="true">
+                     <image>
+                        <Image url="@../../../carte/Carte_Napoletane_retro.jpg" />
+                     </image>
+                     <HBox.margin>
+                        <Insets right="40.0" />
+                     </HBox.margin>
+                  </ImageView>
+                  <ImageView fx:id="cardImageComputer2" fitHeight="150.0" fitWidth="150.0" pickOnBounds="true" preserveRatio="true">
+                     <HBox.margin>
+                        <Insets left="40.0" right="40.0" />
+                     </HBox.margin>
+                     <image>
+                        <Image url="@../../../carte/Carte_Napoletane_retro.jpg" />
+                     </image>
+                  </ImageView>
+                  <ImageView fx:id="cardImageComputer3" fitHeight="150.0" fitWidth="150.0" pickOnBounds="true" preserveRatio="true">
+                     <HBox.margin>
+                        <Insets left="40.0" />
+                     </HBox.margin>
+                     <image>
+                        <Image url="@../../../carte/Carte_Napoletane_retro.jpg" />
+                     </image>
+                  </ImageView>
+                  <VBox prefHeight="150.0" prefWidth="150.0">
+                     <children>
+                        <Label alignment="CENTER_RIGHT" contentDisplay="CENTER" prefHeight="19.0" prefWidth="121.0" text="Computer" textFill="#c8f502">
+                           <font>
+                              <Font size="15.0" />
+                           </font>
+                        </Label>
+                        <Rectangle fx:id="rectCPU" arcHeight="5.0" arcWidth="5.0" fill="#ccff00" height="7.0" smooth="false" stroke="BLACK" strokeType="INSIDE" width="125.0" VBox.vgrow="NEVER" />
+                     </children>
+                     <padding>
+                        <Insets left="40.0" />
+                     </padding>
+                     <HBox.margin>
+                        <Insets left="20.0" />
+                     </HBox.margin>
+                  </VBox>
+               </children>
+               <BorderPane.margin>
+                  <Insets top="20.0" />
+               </BorderPane.margin>
+            </HBox>
+         </top>
+         <bottom>
+            <HBox alignment="CENTER" prefHeight="150.0" prefWidth="606.0" BorderPane.alignment="CENTER">
+               <children>
+                  <ImageView fx:id="cardImagePlayer1" fitHeight="150.0" fitWidth="150.0" onMouseClicked="#onClickCardPlayer1" onMouseEntered="#onMouseEnteredCard1" onMouseExited="#onMouseExitedCard1" pickOnBounds="true" preserveRatio="true">
+                     <HBox.margin>
+                        <Insets right="40.0" />
+                     </HBox.margin>
+                  </ImageView>
+                  <ImageView fx:id="cardImagePlayer2" fitHeight="150.0" fitWidth="150.0" onMouseClicked="#onClickCardPlayer2" onMouseEntered="#onMouseEnteredCard2" onMouseExited="#onMouseExitedCard2" pickOnBounds="true" preserveRatio="true">
+                     <HBox.margin>
+                        <Insets left="40.0" right="40.0" />
+                     </HBox.margin>
+                  </ImageView>
+                  <ImageView fx:id="cardImagePlayer3" fitHeight="150.0" fitWidth="150.0" onMouseClicked="#onClickCardPlayer3" onMouseEntered="#onMouseEnteredCard3" onMouseExited="#onMouseExitedCard3" pickOnBounds="true" preserveRatio="true">
+                     <HBox.margin>
+                        <Insets left="40.0" />
+                     </HBox.margin>
+                  </ImageView>
+                  <VBox prefHeight="150.0" prefWidth="125.0">
+                     <children>
+                        <Label fx:id="playerNameGame" alignment="CENTER_RIGHT" contentDisplay="CENTER" prefHeight="19.0" prefWidth="190.0" textFill="#c8f502">
+                           <font>
+                              <Font size="15.0" />
+                           </font>
+                           <VBox.margin>
+                              <Insets />
+                           </VBox.margin>
+                        </Label>
+                        <Rectangle fx:id="rectPlayer" arcHeight="5.0" arcWidth="5.0" fill="#ccff00" height="7.0" smooth="false" stroke="BLACK" strokeType="INSIDE" width="125.0" />
+                        <Button fx:id="playCardButton" disable="true" mnemonicParsing="false" onAction="#onClickPlayCard" prefHeight="50.0" prefWidth="125.0" text="Gioca">
+                           <VBox.margin>
+                              <Insets top="30.0" />
+                           </VBox.margin>
+                           <font>
+                              <Font size="20.0" />
+                           </font>
+                        </Button>
+                     </children>
+                     <HBox.margin>
+                        <Insets left="40.0" />
+                     </HBox.margin>
+                  </VBox>
+               </children>
+               <BorderPane.margin>
+                  <Insets bottom="20.0" />
+               </BorderPane.margin>
+            </HBox>
+         </bottom>
+         <center>
+            <HBox alignment="CENTER_RIGHT" prefHeight="100.0" prefWidth="200.0" BorderPane.alignment="CENTER">
+               <children>
+                  <ImageView fx:id="cardPlayedComputer" fitHeight="150.0" fitWidth="150.0" pickOnBounds="true" preserveRatio="true">
+                     <HBox.margin>
+                        <Insets />
+                     </HBox.margin>
+                  </ImageView>
+                  <ImageView fx:id="cardPlayedPlayer" fitHeight="150.0" fitWidth="150.0" pickOnBounds="true" preserveRatio="true">
+                     <HBox.margin>
+                        <Insets left="20.0" right="20.0" />
+                     </HBox.margin>
+                  </ImageView>
+                  <ImageView fx:id="imageBriscola" fitHeight="150.0" fitWidth="150.0" pickOnBounds="true" preserveRatio="true" rotate="-90.0">
+                     <HBox.margin>
+                        <Insets left="30.0" right="5.0" />
+                     </HBox.margin>
+                  </ImageView>
+                  <ImageView fx:id="imageMazzo" fitHeight="150.0" fitWidth="150.0" pickOnBounds="true" preserveRatio="true">
+                     <image>
+                        <Image url="@../../../carte/mazzo.jpg" />
+                     </image>
+                     <HBox.margin>
+                        <Insets right="50.0" />
+                     </HBox.margin>
+                  </ImageView>
+               </children>
+            </HBox>
+         </center>
+      </BorderPane>
+   </children>
+</AnchorPane>
