@@ -112,10 +112,15 @@ begin
 				when S_ASPETTO_TOKEN =>
 					LCD_STATO <= numberTo7SegmentDisplay(3);
 					
-					if(TOKEN_CPU = '1') then
+					if(TOKEN_CPU = '1' AND VALUTA_PRESA = '1') then
 						s_current <= S_INVIA_RISULTATO;
 						DECIDI_CARTA <= '0';
 						INVIA_RISULTATO <= '1';
+						NUOVO_TURNO <= '0';
+					elsif(TOKEN_CPU = '1' AND VALUTA_PRESA = '0') then
+						s_current <= S_DECIDI_LANCIA_CARTA;
+						DECIDI_CARTA <= '1';
+						INVIA_RISULTATO <= '0';
 						NUOVO_TURNO <= '0';
 					else
 						s_current <= S_ASPETTO_TOKEN;
