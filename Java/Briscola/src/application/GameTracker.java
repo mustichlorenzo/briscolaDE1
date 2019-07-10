@@ -39,17 +39,17 @@ public class GameTracker {				//dato lo stato della partita, genera il token
 		else return 0x75;							//--> 	token = 0111 0101	(Inizia la CPU)
 	}
 	public byte getToken() {
-		// Tocca al giocatore e la presa non Ã¨ ancora stata valutata 				--> token = 0111 0101
+		// Tocca al giocatore e la presa non è ancora stata valutata 				--> token = 0111 0101
 		if(this.turnoPlayer && !this.presaValutata) return 0x75;
-		// Tocca al giocatore, la presa Ã¨ stata valutata e prende il giocatore 		-->	token = 0111 0000
+		// Tocca al giocatore, la presa è stata valutata e prende il giocatore 		-->	token = 0111 0000
 		if(this.turnoPlayer && this.presaValutata && this.prendePlayer) return 0x70;
-		// Tocca al giocatore, la presa Ã¨ stata valutata e prende la CPU		 	-->	token = 0111 1111
+		// Tocca al giocatore, la presa è stata valutata e prende la CPU		 	-->	token = 0111 1111
 		if(this.turnoPlayer && this.presaValutata && !this.prendePlayer) return 0x7F;
-		// Non tocca al giocatore e la presa non Ã¨ ancora stata valutata 			-->	token = 0000 0101
+		// Non tocca al giocatore e la presa non è ancora stata valutata 			-->	token = 0000 0101
 		if(!this.turnoPlayer && !this.presaValutata) return 0x05;
-		// Non tocca al giocatore, la presa Ã¨ stata valutata e prende il giocatore	-->	token = 0000 1111
+		// Non tocca al giocatore, la presa è stata valutata e prende il giocatore	-->	token = 0000 1111
 		if(!this.turnoPlayer && this.presaValutata && this.prendePlayer) return 0x0F;
-		// Non tocca al giocatore, la presa Ã¨ stata valutata e prende la CPU		--> token = 0000 0000
+		// Non tocca al giocatore, la presa è stata valutata e prende la CPU		--> token = 0000 0000
 		if(!this.turnoPlayer && this.presaValutata && !this.prendePlayer) return 0x00;
 		return (byte) 0xFF;
 	}
@@ -65,6 +65,11 @@ public class GameTracker {				//dato lo stato della partita, genera il token
 
 	public byte getACKTokenCPU() {
 		return (byte) 0x07;
+	}
+
+	public byte getResetToken() {
+		if(this.turnoPlayer) return 0x0A;			//-->	token = 0000 1010	(Inizia il giocatore)
+		else return 0x7A;							//--> 	token = 0111 1010	(Inizia la CPU)
 	}
 	
 }
