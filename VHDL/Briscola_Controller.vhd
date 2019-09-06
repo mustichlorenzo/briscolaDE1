@@ -31,7 +31,7 @@ end entity;
 
 architecture RTL of Briscola_Controller is
 		type s_briscola is (S_IDLE, S_MANO_RICEVUTA, S_DECIDI_LANCIA_CARTA,
-								S_ASPETTO_TOKEN, S_INVIA_RISULTATO);
+								S_ASPETTO_TOKEN, S_INVIA_RISULTATO, S_DELAY);
 		signal s_current : s_briscola := S_IDLE; 
 begin
 	
@@ -42,7 +42,6 @@ begin
 	
 	process(CLOCK) is
 		variable numTurni : integer;
-		variable tasto_premuto : boolean := false;
 	begin 
 		if(rising_edge(CLOCK)) then
 			case s_current is
@@ -87,25 +86,19 @@ begin
 				-- STATO 2
 				when S_DECIDI_LANCIA_CARTA =>
 					LCD_STATO <= numberTo7SegmentDisplay(2);
-					if(TASTO_PIGIATO = '0') then
-						s_current <= S_DECIDI_LANCIA_CARTA;
-					else
-						tasto_premuto := true;
-					end if;
+				
 					if(TOKEN_CPU = '0') then
 							s_current <= S_ASPETTO_TOKEN;
 							DECIDI_CARTA <= '0';
 							INVIA_RISULTATO <= '0';
 							NUOVO_TURNO <= '0';
-					elsif(tasto_premuto) then
-						if(TOKEN_CPU = '1' AND VALUTA_PRESA = '1') then
+					elsif(TOKEN_CPU = '1' AND VALUTA_PRESA = '1') then
 							s_current <= S_INVIA_RISULTATO;
 							DECIDI_CARTA <= '0';
 							INVIA_RISULTATO <= '1';
 							NUOVO_TURNO <= '0';
-						else 
+					else 
 							s_current <= S_DECIDI_LANCIA_CARTA;
-						end if;
 					end if;
 				
 				-- STATO 3
@@ -134,13 +127,19 @@ begin
 					LCD_STATO <= numberTo7SegmentDisplay(4);
 					
 					if(VALUTA_PRESA = '0' AND TASTO_PIGIATO = '1') then
-						s_current <= S_MANO_RICEVUTA;
+						s_current <= S_DELAY;
 						DECIDI_CARTA <= '0';
 						INVIA_RISULTATO <= '0';
 						NUOVO_TURNO <= '1';
 					else
 						s_current <= S_INVIA_RISULTATO;
 					end if;	
+					
+				when S_DELAY =>
+					s_current <= S_MANO_RICEVUTA;
+					DECIDI_CARTA <= '0';
+					INVIA_RISULTATO <= '0';
+					NUOVO_TURNO <= '1';
 					
 			end case;
 	
