@@ -14,6 +14,7 @@ import javafx.scene.layout.BorderPane;
 import javafx.scene.media.AudioClip;
 import javafx.scene.paint.Color;
 import javafx.scene.shape.Rectangle;
+import javafx.stage.Stage;
 import javafx.scene.effect.DropShadow;
 import java.net.URL;
 import java.util.Random;
@@ -32,6 +33,8 @@ public class MainPaneController implements ReceiveCartaEventListener{
 	private boolean playedCard;
 	private DropShadow borderGlow1, borderGlow2, borderGlow3;
 	private GameTracker gameTracker;
+	private Carta carta_giocata;
+	private Alert signalFromFPGA;
 	
 	@FXML
 	private Label playerNameGame;
@@ -128,6 +131,11 @@ public class MainPaneController implements ReceiveCartaEventListener{
 			choosePane.setVisible(true);
 			playerRadioButton.setText(playerName);
 		}
+		this.signalFromFPGA = new Alert(AlertType.WARNING);
+		signalFromFPGA.setTitle("Sincronizzazione dei giocatori");
+		signalFromFPGA.setHeaderText("Attesa della sincronizzazione dei giocatori");
+		signalFromFPGA.setContentText("Premere il tasto KEY 3 sull'FPGA per proseguire");
+		signalFromFPGA.show();
 	}
 	
 	@FXML
@@ -260,7 +268,7 @@ public class MainPaneController implements ReceiveCartaEventListener{
 			this.cardPlayedPlayer.setImage(this.cardImagePlayer3.getImage());
 			break;
 		}
-		Carta carta_giocata = this.mazzo.getManoPlayer(startsPlayer).get(selectedCard-1);
+		this.carta_giocata = this.mazzo.getManoPlayer(startsPlayer).get(selectedCard-1);
 		this.serialAdapter.writeToSerialPort(this.parser.fromCartaToByte(carta_giocata));
 		System.out.print(" --> " + carta_giocata.toString());
 		this.serialAdapter.writeToSerialPort(this.gameTracker.getToken());
@@ -290,9 +298,9 @@ public class MainPaneController implements ReceiveCartaEventListener{
 				Random r = new Random();
 				int index = r.nextInt(3) + 1;
 				switch (index) {
-				case 1: this.cardImageComputer1.setImage(null); break;
-				case 2: this.cardImageComputer2.setImage(null); break;
-				case 3: this.cardImageComputer3.setImage(null); break;
+				case 1: this.cardImageComputer1.setVisible(false); break;
+				case 2: this.cardImageComputer2.setVisible(false); break;
+				case 3: this.cardImageComputer3.setVisible(false); break;
 				}
 				if(!this.gameTracker.getPresaValutata() && !this.playedCard ) {	//token per forzare lo stato di attesa della CPU
 					this.serialAdapter.writeToSerialPort(this.gameTracker.getACKTokenCPU());
@@ -301,32 +309,88 @@ public class MainPaneController implements ReceiveCartaEventListener{
 				}
 				this.playCardButton.setDisable(this.gameTracker.getTurnoPlayer());
 			}
-			
-		//Problema: quando ricevo il token con la presa valutata, devo scartare la carta lanciata con esso, ma viene considerato solo al secondo invio.
-		// si potrebbe inviare solo il token dalla CPU, senza inviare sia la carta che il token.
 		
-		}
-		if(this.gameTracker.getPresaValutata()) {
-			//this.serialAdapter.writeToSerialPort(this.gameTracker.getACKTokenCPU());
+		} else { this.receivedCarta = null; }
+		if(this.gameTracker.getPresaValutata() && this.receivedCarta != null) {
 			this.playedCard = false;
 			System.out.println("\n---------- NUOVO TURNO ----------");
 			if(this.gameTracker.getPrendePlayer()) {	//imposto il gametracker per il prossimo turno
-				this.mazzo.getNextCard();		//mettere la nuova carta nella mano
+				this.mazzo.getManoPlayer(startsPlayer).remove(carta_giocata);
+				Carta next_card_player = this.mazzo.getNextCard();
+				this.mazzo.getManoPlayer(startsPlayer).add(next_card_player);
+				switch(getPlayedCard()) {
+				case 1: this.cardImagePlayer1.setImage(this.mazzo.getImageFromCarta(next_card_player)); break;
+				case 2: this.cardImagePlayer2.setImage(this.mazzo.getImageFromCarta(next_card_player)); break;
+				case 3: this.cardImagePlayer3.setImage(this.mazzo.getImageFromCarta(next_card_player)); break;
+				}
+				
+				this.mazzo.removeCarta(this.mazzo.getManoCPU(startsPlayer),this.receivedCarta);
+				Carta next_card_CPU = this.mazzo.getNextCard();
+				this.mazzo.getManoCPU(startsPlayer).add(next_card_CPU);
+				switch(getPlayedCardCPU()) {
+				case 1: this.cardImageComputer1.setVisible(true); break;
+				case 2: this.cardImageComputer2.setVisible(true); break;
+				case 3: this.cardImageComputer3.setVisible(true); break;
+				}
+				this.gameTracker.nuovoTurno();
+				this.serialAdapter.writeToSerialPort(this.gameTracker.getResetToken());
+				this.serialAdapter.sendNextCard(next_card_CPU);
+				
+				this.playCardButton.setDisable(false);
 				this.rectPlayer.setVisible(true);
 				this.rectCPU.setVisible(false);
-				this.gameTracker.nuovoTurno();
-				this.serialAdapter.writeToSerialPort(this.gameTracker.getResetToken());
-				this.serialAdapter.sendNextCard(this.mazzo.getNextCard()); //mettere la nuova carta nella mano
-				this.playCardButton.setDisable(false);
 			} else {	//ha preso la CPU
+				this.gameTracker.nuovoTurno();
+				this.mazzo.removeCarta(this.mazzo.getManoCPU(startsPlayer),this.receivedCarta);
+				Carta next_card_CPU = this.mazzo.getNextCard();
+				this.mazzo.getManoCPU(startsPlayer).add(next_card_CPU);
+				switch(getPlayedCardCPU()) {
+				case 1: this.cardImageComputer1.setVisible(true); break;
+				case 2: this.cardImageComputer2.setVisible(true); break;
+				case 3: this.cardImageComputer3.setVisible(true); break;
+				}
+				
+				this.mazzo.getManoPlayer(startsPlayer).remove(carta_giocata);
+				Carta next_card_player = this.mazzo.getNextCard();
+				this.mazzo.getManoPlayer(startsPlayer).add(next_card_player);
+				switch(getPlayedCard()) {
+				case 1: this.cardImagePlayer1.setImage(this.mazzo.getImageFromCarta(next_card_player)); this.cardImagePlayer1.setVisible(true); break;
+				case 2: this.cardImagePlayer2.setImage(this.mazzo.getImageFromCarta(next_card_player)); this.cardImagePlayer2.setVisible(true); break;
+				case 3: this.cardImagePlayer3.setImage(this.mazzo.getImageFromCarta(next_card_player)); this.cardImagePlayer3.setVisible(true); break;
+				}
+				this.serialAdapter.writeToSerialPort(this.gameTracker.getResetToken());
+				this.serialAdapter.sendNextCard(next_card_CPU);
+
 				this.rectPlayer.setVisible(false);
 				this.rectCPU.setVisible(true);
-				this.gameTracker.nuovoTurno();
-				this.serialAdapter.writeToSerialPort(this.gameTracker.getResetToken());
-				this.serialAdapter.sendNextCard(this.mazzo.getNextCard());  //mettere la nuova carta nella mano
-				this.mazzo.getNextCard();	//mettere la nuova carta nella mano
 			}
+			this.cardPlayedComputer.setImage(null);
+			this.cardPlayedPlayer.setImage(null);
+			this.receivedCarta = null;
+			this.carta_giocata = null;
+		} else {
+			this.gameTracker.invertiTurno();
 		}
+	}
+
+	private int getPlayedCard() {
+		if(!this.cardImagePlayer1.isVisible()) return 1;
+		if(!this.cardImagePlayer2.isVisible()) return 2;
+		if(!this.cardImagePlayer3.isVisible()) return 3;
+		return 0;
+	}
+	
+	private int getPlayedCardCPU() {
+		if(!this.cardImageComputer1.isVisible()) return 1;
+		if(!this.cardImageComputer2.isVisible()) return 2;
+		if(!this.cardImageComputer3.isVisible()) return 3;
+		return 0;
+	}
+
+	@Override
+	public void onReceiveSincronizeSignal() {
+		// TODO Auto-generated method stub
+		
 	}
 	
 	
