@@ -39,7 +39,9 @@ public class InputParser {
 						c = new Carta(valoreCarta, seme);
 						c.setBriscola(briscola);
 						System.out.println("Ricevuto: " + " [" + Integer.toBinaryString(frame).substring(24)+ "] "+ c.toString());
-					} catch (IllegalArgumentException e){ }
+					} catch (IllegalArgumentException e){ 
+						if(this.listener!=null) listener.onReceiveSincronizeSignal();
+					}
 
 				} else if(typeFrame == 0x0) {				//verifico che il frame ricevuto sia un token
 					app = (byte) (app >>> 4);					//shift a dx di 4 bit

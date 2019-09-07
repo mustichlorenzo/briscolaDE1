@@ -53,13 +53,14 @@ architecture Behaviour of Briscola is
 		PENULTIMO_TURNO	: in std_logic;
 		
 		TASTO_PREMUTO		: in std_logic; -- KEY(0) da collegare con
+		TASTO_INIZIO		: in std_logic; -- KEY(3) per l'inizio della partita
 		
 		MANO_RICEVUTA		: out std_logic;
 		TOKEN_CPU			: out std_logic;
 		PRESA_CPU			: out std_logic;
 		VALUTA_PRESA		: out std_logic;
 		
-		TX_LINE 				: out std_logic -- UART_TXD da collegare con 
+		TX_LINE 				: out std_logic -- UART_TXD
 	);
 	end component;
 	
@@ -117,7 +118,7 @@ begin
 	datapath : Briscola_Datapath 	
 							port map(
 								CLOCK => CLOCK_50, 
-								RESET	=> SW(9), 
+								RESET => SW(9), 
 								
 								RX_LINE => UART_RXD, 
 								LCD0 => HEX0,
@@ -130,7 +131,8 @@ begin
 								NUOVO_TURNO => turno_nuovo,
 								PENULTIMO_TURNO => turno_penultimo,
 								
-								TASTO_PREMUTO => NOT KEY(1), 
+								TASTO_PREMUTO => NOT KEY(1),
+								TASTO_INIZIO => NOT KEY(3),
 								
 								MANO_RICEVUTA => mano_ricevuta_cpu, 
 								TOKEN_CPU => token_ricevuto_cpu, 
