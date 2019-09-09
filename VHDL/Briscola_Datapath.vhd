@@ -89,10 +89,10 @@ architecture RTL of Briscola_Datapath is
 begin 
 --	LEDGREEN <= sig_token_int;
 --	LEDGREEN(4) <= TASTO_PREMUTO;
---	LEDGREEN(3) <= DECIDI_CARTA;
---	LEDGREEN(2) <= INVIA_RISULTATO;
+	LEDGREEN(3) <= DECIDI_CARTA;
+	LEDGREEN(2) <= INVIA_RISULTATO;
 --	LEDGREEN(1) <= NUOVO_TURNO;
---	LEDGREEN(0) <= PENULTIMO_TURNO;
+	LEDGREEN(0) <= FINE_TURNO;
 		
 	rx : UART_RX port map(CLOCK, RX_LINE, data_valid_RX, data_received);
 
@@ -147,10 +147,8 @@ begin
 			data_transmitted_token <= sig_token_int OR sig_token_presa;
 			
 			LCD1 <= numberTo7SegmentDisplay(sig_carta_giocata_pl.numero);
-			LCD3 <= numberTo7SegmentDisplay(mano(indice_carta_giocata).numero);
+			--LCD3 <= numberTo7SegmentDisplay(mano(indice_carta_giocata).numero);
 			LCD0 <= numberTo7SegmentDisplay(carta_counter);
-			
-			LEDGREEN(7) <= carta_in_arrivo;
 			
 			if(data_valid_RX = '1') then
 				if(vectorIsNotZero(data_received)) then
@@ -181,6 +179,9 @@ begin
 					end case;
 					
 					numero := to_integer(unsigned(reverse_vector(data_received(3 to 6))));
+					if(numero = 12) then 
+						numero := 1;
+					end if;
 					valore := getValorefromNumber(numero);
 				
 					carta_ricevuta := (numero, seme_carta, valore, briscola);
@@ -232,30 +233,34 @@ begin
 					end case;
 					
 					if(token_counter = 1) then
-						case data_received(4 to 6) is
-							when "111" =>
-								TOKEN_CPU <= '1';
-								prima_la_CPU <= true;
-							when "000" =>
-								TOKEN_CPU <= '0';
-								prima_la_CPU <= false;
-							when others => 
-						end case;
+						if(data_received(7) = '0') then
+							case data_received(4 to 6) is
+								when "111" =>
+									TOKEN_CPU <= '1';
+									prima_la_CPU <= true;
+								when "000" =>
+									TOKEN_CPU <= '0';
+									prima_la_CPU <= false;
+								when others => 
+							end case;
+						end if;
 					else
-						case data_received(4 to 6) is
-							when "111" =>
-								TOKEN_CPU <= '1';
-							when "000" =>
-								TOKEN_CPU <= '0';
-							when others => 
-						end case;
+						if(data_received(7) = '0') then
+							case data_received(4 to 6) is
+								when "111" =>
+									TOKEN_CPU <= '1';
+								when "000" =>
+									TOKEN_CPU <= '0';
+								when others => 
+							end case;
+						end if;
 					end if;
 				end if;				
 			end if;
 		end if;
 	end process;	
 	
---	LCD3 <= numberTo7SegmentDisplay(sig_carta_da_lanciare_cpu.numero);
+	LCD3 <= numberTo7SegmentDisplay(sig_carta_da_lanciare_cpu.numero);
 --	LCD1 <= numberTo7SegmentDisplay(sig_carta_giocata_pl.numero);
 	
 	--
@@ -308,8 +313,10 @@ begin
 			
 			if(FINE_TURNO = '1') then
 				VALUTA_PRESA <= '0';
-			else 
+			elsif(sig_carta_giocata_pl.numero > 0) then
 				VALUTA_PRESA <= '1';
+			else 
+				VALUTA_PRESA <= '0';
 			end if;
 		end if;
 	end process;
@@ -324,6 +331,7 @@ begin
 		if(rising_edge(CLOCK)) then
 			if(AZZERA_TOKEN = '1') then
 				sig_token_presa <= "00000000";
+				FINE_TURNO <= '0';
 			end if;
 			if(INVIA_RISULTATO = '1') then
 				if((sig_carta_da_lanciare_cpu.numero > 0) AND (sig_carta_giocata_pl.numero > 0)) then 
