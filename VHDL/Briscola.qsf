@@ -41,7 +41,7 @@ set_global_assignment -name DEVICE EP2C20F484C7
 set_global_assignment -name TOP_LEVEL_ENTITY Briscola
 set_global_assignment -name ORIGINAL_QUARTUS_VERSION 12.1
 set_global_assignment -name PROJECT_CREATION_TIME_DATE "16:47:19  FEBRUARY 18, 2019"
-set_global_assignment -name LAST_QUARTUS_VERSION 12.1
+set_global_assignment -name LAST_QUARTUS_VERSION "13.0 SP1"
 set_global_assignment -name PROJECT_OUTPUT_DIRECTORY output_files
 set_global_assignment -name MIN_CORE_JUNCTION_TEMP 0
 set_global_assignment -name MAX_CORE_JUNCTION_TEMP 85
@@ -506,4 +506,9 @@ set_global_assignment -name VHDL_FILE briscola_fase2_package.vhd
 set_global_assignment -name VHDL_FILE UART_RX.vhd
 set_global_assignment -name VHDL_FILE briscola_penultimo_turno_package.vhd
 set_global_assignment -name STRATIX_DEVICE_IO_STANDARD "3.3-V LVTTL"
+
+set_global_assignment -name VHDL_FILE I2C_Configurer.vhd
+set_global_assignment -name VHDL_FILE BriscolaAudio.vhd
+set_global_assignment -name VHDL_FILE briscola_audio_package.vhd
+set_global_assignment -name QIP_FILE PLL.qip
 set_instance_assignment -name PARTITION_HIERARCHY root_partition -to | -section_id Top
