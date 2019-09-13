@@ -31,7 +31,7 @@ end entity;
 
 architecture RTL of Briscola_Controller is
 		type s_briscola is (S_IDLE, S_MANO_RICEVUTA, S_DECIDI_LANCIA_CARTA,
-								S_ASPETTO_TOKEN, S_INVIA_RISULTATO, S_DELAY);
+								S_ASPETTO_TOKEN, S_INVIA_RISULTATO, S_DECRETA_VINCITORE, S_DELAY);
 		signal s_current : s_briscola := S_IDLE; 
 begin
 	
@@ -75,7 +75,7 @@ begin
 						
 						s_current <= S_DECIDI_LANCIA_CARTA;
 						
-						if(numTurni = 19) then
+						if(numTurni = 17) then
 							PENULTIMO_TURNO <= '1';
 						end if;
 					
@@ -136,10 +136,28 @@ begin
 					end if;	
 					
 				when S_DELAY =>
-					s_current <= S_MANO_RICEVUTA;
-					DECIDI_CARTA <= '0';
-					INVIA_RISULTATO <= '0';
-					NUOVO_TURNO <= '1';
+					if(numTurni = 20) then
+						s_current <= S_DECRETA_VINCITORE;
+						DECIDI_CARTA <= '0';
+						INVIA_RISULTATO <= '1';
+						NUOVO_TURNO <= '0';
+					else 
+						s_current <= S_MANO_RICEVUTA;
+						DECIDI_CARTA <= '0';
+						INVIA_RISULTATO <= '0';
+						NUOVO_TURNO <= '1';
+					end if;
+					
+				when S_DECRETA_VINCITORE =>
+					if(RESET = '1') then
+						s_current <= S_IDLE;
+						DECIDI_CARTA <= '0';
+						INVIA_RISULTATO <= '0';
+						NUOVO_TURNO <= '0';
+						PENULTIMO_TURNO <= '0';
+					else
+						s_current <= S_DECRETA_VINCITORE;
+					end if;
 					
 			end case;
 	
