@@ -39,8 +39,10 @@ package body briscola_lisci_package is
 	function isLiscio(mano: mano_cpu) return boolean is
 	begin 
 		for i in 0 to 2 loop
-			if (mano(i).valore = 0 AND mano(i).briscola = false) then
-				return true;
+			if(mano(i).numero > 0) then
+				if (mano(i).valore = 0 AND mano(i).briscola = false) then
+					return true;
+				end if;
 			end if;
 		end loop;
 		
@@ -52,9 +54,11 @@ package body briscola_lisci_package is
 	function isCarico(mano : mano_cpu) return boolean is
 	begin 
 		for i in 0 to 2 loop
-			if(NOT mano(i).briscola) then
-				if(mano(i).valore = 10 OR mano(i).valore = 11) then 
-					return true;
+			if(mano(i).numero > 0) then
+				if(NOT mano(i).briscola) then
+					if(mano(i).valore = 10 OR mano(i).valore = 11) then 
+						return true;
+					end if;
 				end if;
 			end if;
 		end loop;
@@ -68,18 +72,22 @@ package body briscola_lisci_package is
 		variable seme_carico : seme;
 	begin 
 		for i in 0 to 2 loop
-			if(NOT mano(i).briscola) then
-				if(mano(i).valore = 11 OR mano(i).valore = 10) then 
-					seme_carico := mano(i).seme_carta;
-					exit;
+			if(mano(i).numero > 0) then
+				if(NOT mano(i).briscola) then
+					if(mano(i).valore = 11 OR mano(i).valore = 10) then 
+						seme_carico := mano(i).seme_carta;
+						exit;
+					end if;
 				end if;
 			end if;
 		end loop;
 		
 		for i in 0 to 2 loop 
-			if(NOT mano(i).briscola) then
-				if(mano(i).valore = 0 AND mano(i).seme_carta = seme_carico) then 
-					return true;
+			if(mano(i).numero > 0) then
+				if(NOT mano(i).briscola) then
+					if(mano(i).valore = 0 AND mano(i).seme_carta = seme_carico) then 
+						return true;
+					end if;
 				end if;
 			end if;
 		end loop;
@@ -94,18 +102,22 @@ package body briscola_lisci_package is
 		variable indice		: integer;
 	begin 
 		for i in 0 to 2 loop
-			if(NOT mano(i).briscola) then
-				if(mano(i).valore = 11 OR mano(i).valore = 10) then 
-					seme_carico := mano(i).seme_carta;
-					exit;
+			if(mano(i).numero > 0) then
+				if(NOT mano(i).briscola) then
+					if(mano(i).valore = 11 OR mano(i).valore = 10) then 
+						seme_carico := mano(i).seme_carta;
+						exit;
+					end if;
 				end if;
 			end if;
 		end loop;
 		
 		for i in 0 to 2 loop 
-			if(NOT mano(i).briscola) then
-				if(mano(i).valore = 0 AND mano(i).seme_carta = seme_carico) then 
-					indice := i;
+			if(mano(i).numero > 0) then
+				if(NOT mano(i).briscola) then
+					if(mano(i).valore = 0 AND mano(i).seme_carta = seme_carico) then 
+						indice := i;
+					end if;
 				end if;
 			end if;
 		end loop;
@@ -120,20 +132,24 @@ package body briscola_lisci_package is
 		variable carta_piu_bassa 	: integer;
 	begin
 		for i in 0 to 2 loop
-			if(NOT mano(i).briscola) then 
-				if(mano(i).valore = 0) then 
-					carta_piu_bassa := mano(i).numero;
-					indice := i;
-				end if;			
+			if(mano(i).numero > 0) then
+				if(NOT mano(i).briscola) then 
+					if(mano(i).valore = 0) then 
+						carta_piu_bassa := mano(i).numero;
+						indice := i;
+					end if;			
+				end if;
 			end if;
 		end loop;
 		
 		for i in 0 to 2 loop 
-			if(NOT mano(i).briscola) then 
-				if(mano(i).valore = 0) then 
-					if(mano(i).numero < carta_piu_bassa) then 
-						carta_piu_bassa := mano(i).numero;
-						indice := i;
+			if(mano(i).numero > 0) then
+				if(NOT mano(i).briscola) then 
+					if(mano(i).valore = 0) then 
+						if(mano(i).numero < carta_piu_bassa) then 
+							carta_piu_bassa := mano(i).numero;
+							indice := i;
+						end if;
 					end if;
 				end if;
 			end if;

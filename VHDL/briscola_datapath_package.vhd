@@ -56,11 +56,11 @@ package body briscola_datapath_package is
 				return (carta1.valore > carta2.valore);
 			end if;
 		else
-			if (carta1.briscola = false AND carta2.briscola = false) then 
+			if (NOT carta1.briscola AND NOT carta2.briscola) then 
 				return true;	-- carta1 è vincente
 			else
 				return carta1.briscola;		-- in questo ramo, le carte hanno semi diversi e una delle 2 è briscola (se è vero carta1 briscola
-													-- altrimenti carta2 è brsicola)
+											-- altrimenti carta2 è brsicola)
 			end if;
 		end if;
 		

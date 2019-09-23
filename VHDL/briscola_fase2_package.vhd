@@ -44,11 +44,13 @@ package body briscola_fase2_package is
 		indice := -1;
 		
 		for i in 0 to 2 loop
-			if(NOT mano(i).briscola) then
-				if(mano(i).seme_carta = cartaTerra.seme_carta) then 
-					if(mano(i).valore > cartaTerra.valore AND mano(i).valore >= cartaCorrente.valore) then 
-						indice := i;
-						cartaCorrente := mano(i);
+			if(mano(i).numero > 0) then
+				if(NOT mano(i).briscola) then
+					if(mano(i).seme_carta = cartaTerra.seme_carta) then 
+						if(mano(i).valore > cartaTerra.valore AND mano(i).valore >= cartaCorrente.valore) then 
+							indice := i;
+							cartaCorrente := mano(i);
+						end if;
 					end if;
 				end if;
 			end if;

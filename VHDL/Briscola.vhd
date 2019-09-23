@@ -61,13 +61,14 @@ architecture Behaviour of Briscola is
 		RESET		       	: in std_logic;
 		
 		RX_LINE				: in std_logic;
-		LCD0					: out std_logic_vector(0 to 6);
+--		LCD0					: out std_logic_vector(0 to 6);
 		LCD3					: out std_logic_vector(0 to 6);
 		LCD1					: out std_logic_vector(0 to 6);
 		LEDGREEN				: out std_logic_vector(0 to 7);
 		
 		DECIDI_CARTA		: in std_logic;
 		INVIA_RISULTATO 	: in std_logic;
+		INVIA_RISULTATO_FINALE : in std_logic;
 		NUOVO_TURNO			: in std_logic;
 		PENULTIMO_TURNO	: in std_logic;
 		
@@ -85,11 +86,12 @@ architecture Behaviour of Briscola is
 	
 	component Briscola_Controller is
 	port (
-		CLOCK					: in std_logic;
-		RESET					: in std_logic;
+		CLOCK				: in std_logic;
+		RESET				: in std_logic;
 		
 		LEDRED				: out std_logic_vector(0 to 9);
 		LCD_STATO			: out std_logic_vector(0 to 6);
+		LCD_TURNO			: out std_logic_vector(0 to 6);
 		TASTO_PIGIATO		: in std_logic; 
 		
 		MANO_RICEVUTA		: in std_logic;
@@ -99,6 +101,7 @@ architecture Behaviour of Briscola is
 		
 		DECIDI_CARTA		: out std_logic;
 		INVIA_RISULTATO 	: out std_logic;
+		INVIA_RISULTATO_FINALE : out std_logic;
 		NUOVO_TURNO			: out std_logic;
 		PENULTIMO_TURNO		: out std_logic
 	);
@@ -133,7 +136,6 @@ architecture Behaviour of Briscola is
 			inclk0	: IN STD_LOGIC  := '0';
 			c0		: OUT STD_LOGIC ;
 			c1		: OUT STD_LOGIC 
-		
 		);
 	end component;
 	
@@ -143,6 +145,7 @@ architecture Behaviour of Briscola is
 	signal calcola_presa		: std_logic;
 	signal decidi_carta_cpu		: std_logic;
 	signal invia_punti			: std_logic;
+	signal invia_punti_finale	: std_logic;
 	signal turno_nuovo			: std_logic;
 	signal turno_penultimo		: std_logic;
 	
@@ -160,6 +163,7 @@ begin
 								
 								LEDRED => LEDR,		
 								LCD_STATO => HEX2,
+								LCD_TURNO => HEX0,
 								TASTO_PIGIATO => NOT KEY(1),
 
 								MANO_RICEVUTA => mano_ricevuta_cpu, 
@@ -169,6 +173,7 @@ begin
 								
 								DECIDI_CARTA => decidi_carta_cpu, 
 								INVIA_RISULTATO => invia_punti, 
+								INVIA_RISULTATO_FINALE => invia_punti_finale, 
 								NUOVO_TURNO => turno_nuovo,
 								PENULTIMO_TURNO => turno_penultimo
 							); 
@@ -179,13 +184,14 @@ begin
 								RESET => SW(9), 
 								
 								RX_LINE => UART_RXD, 
-								LCD0 => HEX0,
+--								LCD0 => HEX0,
 								LCD3 => HEX3,
 								LCD1 => HEX1,
 								LEDGREEN => LEDG,
 																	
 								DECIDI_CARTA => decidi_carta_cpu, 
-								INVIA_RISULTATO => invia_punti, 
+								INVIA_RISULTATO => invia_punti,
+								INVIA_RISULTATO_FINALE => invia_punti_finale,
 								NUOVO_TURNO => turno_nuovo,
 								PENULTIMO_TURNO => turno_penultimo,
 								
@@ -227,8 +233,8 @@ begin
 		port map 
 		(
 			inclk0		=> CLOCK_50,
-			c0				=> clock,		
-			c1				=> clockAudio
+			c0			=> clock,		
+			c1			=> clockAudio
 		);
 		
 		reset_sync: process(CLOCK_50)

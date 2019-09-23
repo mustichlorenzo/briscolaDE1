@@ -23,13 +23,14 @@ entity Briscola_Datapath is
 		RESET		      	: in std_logic;
 
 		RX_LINE				: in std_logic;
-		LCD0				: out std_logic_vector(0 to 6);
+--		LCD0				: out std_logic_vector(0 to 6);
 		LCD3				: out std_logic_vector(0 to 6);
 		LCD1				: out std_logic_vector(0 to 6);
 		LEDGREEN			: out std_logic_vector(0 to 7);
 		
 		DECIDI_CARTA		: in std_logic;
 		INVIA_RISULTATO 	: in std_logic;
+		INVIA_RISULTATO_FINALE 	: in std_logic;
 		NUOVO_TURNO			: in std_logic;
 		PENULTIMO_TURNO		: in std_logic;
 		
@@ -46,33 +47,32 @@ entity Briscola_Datapath is
 end entity;
 
 architecture RTL of Briscola_Datapath is
-	signal punti_cpu							: integer;
-	signal punti_player 						: integer;
+	signal punti_cpu							: integer := 0;
+	signal punti_player 						: integer := 0;
 	signal mano									: mano_cpu;
 	signal briscola_partita						: carta;
 	signal carta_giocata_pl						: carta;
 	signal carta_giocata_cpu 					: carta;
 	signal AZZERA_CARTE_GIOCATE					: std_logic;
-	signal ASSEGNA_CARTA_GIOCATA_CPU			: std_logic;
-	signal ASSEGNA_CARTA_GIOCATA_PLAYER			: std_logic;
 	signal AZZERA_TOKEN							: std_logic;
---	signal ASSEGNA_DATA_TRASMITTED_TOKEN_INT	: std_logic;
---	signal ASSEGNA_DATA_TRASMITTED_TOKEN_PRESA	: std_logic;
 	signal FINE_TURNO							: std_logic;
 	signal sig_carta_da_lanciare_cpu			: carta;
 	signal sig_carta_giocata_pl					: carta;
 	signal sig_token_int						: std_logic_vector(0 to 7) := (others => '0');
 	signal sig_token_presa						: std_logic_vector(0 to 7) := (others => '0');
+	signal sig_punti_cpu						: std_logic_vector(0 to 7) := (others => '0');
+	signal sig_punti_player						: std_logic_vector(0 to 7) := (others => '0');
 	
 	signal data_transmitted 		: std_logic_vector(0 to 7);
-	signal data_transmitted_carta : std_logic_vector(0 to 7);
-	signal data_transmitted_token : std_logic_vector(0 to 7);
+	signal data_transmitted_carta 	: std_logic_vector(0 to 7);
+	signal data_transmitted_token 	: std_logic_vector(0 to 7);
+	signal data_transmitted_punti 	: std_logic_vector(0 to 20);
 	signal data_valid_RX 			: std_logic; 
 	signal data_received			: std_logic_vector(0 to 7);
 	signal TX_ENABLE_CARTA			: std_logic; 
 	signal TX_ENABLE_TOKEN			: std_logic;
 	signal R_ENABLE					: std_logic;
-	signal prima_la_CPU				: boolean;
+	signal starts_cpu				: boolean;
 	signal indice_carta_giocata		: integer := -1;
 	
 	-- componenti
@@ -86,52 +86,29 @@ architecture RTL of Briscola_Datapath is
 	);
 	end component;
 	
-begin 
---	LEDGREEN <= sig_token_int;
---	LEDGREEN(4) <= TASTO_PREMUTO;
+begin
+	LEDGREEN(7) <= INVIA_RISULTATO_FINALE;
+	LEDGREEN(4) <= PENULTIMO_TURNO;
 	LEDGREEN(3) <= DECIDI_CARTA;
 	LEDGREEN(2) <= INVIA_RISULTATO;
---	LEDGREEN(1) <= NUOVO_TURNO;
+	LEDGREEN(1) <= NUOVO_TURNO;
 	LEDGREEN(0) <= FINE_TURNO;
 		
 	rx : UART_RX port map(CLOCK, RX_LINE, data_valid_RX, data_received);
-
-	--
---	NuovoTurno : process(CLOCK, RESET, NUOVO_TURNO) is
---	begin
---		if(rising_edge(CLOCK)) then
---			if(NUOVO_TURNO = '1') then 
---				AZZERA_CARTE_GIOCATE <= NUOVO_TURNO;
---			end if;
---		end if;
---	
---	end process;
-
-
-
-
-	-- PROBLEMA: verificare perchè non si aggiorna VALUTA_PRESA e rimane nello stato 2
-	--			 i due registri sig_carta_da_lanciare_cpu e sig_carta_giocata_pl sono entrambi pieni, ma VALUTA_PRESA non si accende
-	--			 controllare con i led i valori di sig_token_int e sig_token_presa
-
-
-
-
 	
 	RiceviMano: process(CLOCK, RESET, NUOVO_TURNO)
-		variable mano_counter	: integer := 0;
+		variable mano_counter	: integer 	:= 0;
 		variable carta_ricevuta	: carta;
 		variable briscola 		: boolean;
 		variable seme_carta 	: seme; 
 		variable numero 		: integer;
 		variable valore			: integer;
-		variable token_counter	: integer := 0;
-		variable carta_reset 	: carta := (0, DENARI, 0, false);
+		variable token_counter	: integer 	:= 0;
+		variable carta_reset 	: carta 	:= (0, DENARI, 0, false);
 		variable carta_in_arrivo: std_logic := '0';
-		variable carta_counter	: integer := 0;
+		variable carta_counter	: integer 	:= 0;
 		variable stop_ric_mano	: std_logic := '0';		-- indica la fine della ricezione della mano
 	begin
-		--LCD0 <= numberTo7SegmentDisplay(mano_counter);
 		if(RESET = '1') then
 			for i in 0 to 2 loop 
 				mano(i) <= carta_reset;
@@ -145,10 +122,6 @@ begin
 			end if;
 
 			data_transmitted_token <= sig_token_int OR sig_token_presa;
-			
-			LCD1 <= numberTo7SegmentDisplay(sig_carta_giocata_pl.numero);
-			--LCD3 <= numberTo7SegmentDisplay(mano(indice_carta_giocata).numero);
-			LCD0 <= numberTo7SegmentDisplay(carta_counter);
 			
 			if(data_valid_RX = '1') then
 				if(vectorIsNotZero(data_received)) then
@@ -181,6 +154,9 @@ begin
 					numero := to_integer(unsigned(reverse_vector(data_received(3 to 6))));
 					if(numero = 12) then 
 						numero := 1;
+					elsif(numero = 13) then
+						carta_ricevuta := carta_reset;
+						numero := 0;
 					end if;
 					valore := getValorefromNumber(numero);
 				
@@ -195,9 +171,9 @@ begin
 					else
 						if(stop_ric_mano = '0') then
 							if(mano_counter = 3) then 
-								briscola_partita <= carta_ricevuta;
+								briscola_partita <= carta_ricevuta;		-- briscola della partita
 							elsif(mano_counter < 3) then
-								mano(mano_counter) <= carta_ricevuta;
+								mano(mano_counter) <= carta_ricevuta;	-- carta nella mano iniziale
 							end if;
 						end if;
 					end if;
@@ -237,10 +213,10 @@ begin
 							case data_received(4 to 6) is
 								when "111" =>
 									TOKEN_CPU <= '1';
-									prima_la_CPU <= true;
+									starts_cpu <= true;
 								when "000" =>
 									TOKEN_CPU <= '0';
-									prima_la_CPU <= false;
+									starts_cpu <= false;
 								when others => 
 							end case;
 						end if;
@@ -258,10 +234,7 @@ begin
 				end if;				
 			end if;
 		end if;
-	end process;	
-	
-	LCD3 <= numberTo7SegmentDisplay(sig_carta_da_lanciare_cpu.numero);
---	LCD1 <= numberTo7SegmentDisplay(sig_carta_giocata_pl.numero);
+	end process;
 	
 	--
 	DecidiCarta : process(CLOCK, RESET, DECIDI_CARTA, PENULTIMO_TURNO, FINE_TURNO, sig_carta_giocata_pl, NUOVO_TURNO) is 
@@ -279,6 +252,10 @@ begin
 				sig_carta_da_lanciare_cpu <= carta_reset;
 			end if;
 			
+			if(INVIA_RISULTATO_FINALE = '1') then
+				TX_ENABLE_CARTA <= '0';
+			end if;
+			
 			if(DECIDI_CARTA = '1') then
 				if(PENULTIMO_TURNO = '0') then
 					if(sig_carta_giocata_pl.numero = 0) then 
@@ -293,12 +270,11 @@ begin
 						indice := decidiCartaFase2(mano, sig_carta_giocata_pl);
 					end if; -- FASE 1 o FASE 2
 				else -- PENULTIMO_TURNO = 1 
-					indice := decidiPenultimo(mano, briscola_partita);			
+					indice := decidiPenultimo(mano, briscola_partita);	
 				end if; -- GIOCATA NORMALE
 				indice_carta_giocata <= indice;
 				carta_da_lanciare := mano(indice);
 				sig_carta_da_lanciare_cpu <= carta_da_lanciare;
-				ASSEGNA_CARTA_GIOCATA_CPU <= '1';
 				data_transmitted_carta <= fromCartaToByte(carta_da_lanciare);
 				TX_ENABLE_CARTA <= TASTO_PREMUTO;
 	
@@ -326,44 +302,71 @@ begin
 	ValutaInviaRisultato : process(CLOCK, INVIA_RISULTATO, AZZERA_TOKEN, sig_carta_da_lanciare_cpu, sig_carta_giocata_pl) is
 		variable risultato 		: boolean;
 		variable byte_result	: std_logic_vector (0 to 7);
+		variable pt_CPU			: integer := 0;
+		variable pt_PL			: integer := 0;
+		variable read_once		: std_logic := '0';
 		
 	begin 
 		if(rising_edge(CLOCK)) then
+			
+	LCD3 <= numberTo7SegmentDisplay(pt_CPU);
+	LCD1 <= numberTo7SegmentDisplay(pt_PL);
 			if(AZZERA_TOKEN = '1') then
 				sig_token_presa <= "00000000";
 				FINE_TURNO <= '0';
+				read_once := '0';
 			end if;
 			if(INVIA_RISULTATO = '1') then
-				if((sig_carta_da_lanciare_cpu.numero > 0) AND (sig_carta_giocata_pl.numero > 0)) then 
-					if(prima_la_CPU) then 
+				if((sig_carta_da_lanciare_cpu.numero > 0) AND (sig_carta_giocata_pl.numero > 0)) then
+					if(starts_cpu) then 
 						risultato := valutaPresa(sig_carta_da_lanciare_cpu, sig_carta_giocata_pl);
-						if(risultato) then 
-							punti_cpu <= punti_cpu + sig_carta_da_lanciare_cpu.valore + sig_carta_giocata_pl.valore;
+						if(risultato) then
+							if(read_once = '0') then
+								pt_CPU := pt_CPU + sig_carta_da_lanciare_cpu.valore + sig_carta_giocata_pl.valore;
+								read_once := '1';
+							end if;
 							byte_result := "00001111"; -- non tocca al giocatore, ha preso la CPU
 						else
-							punti_player <= punti_player + sig_carta_da_lanciare_cpu.valore + sig_carta_giocata_pl.valore;
+							if(read_once = '0') then
+								pt_PL := pt_PL + sig_carta_da_lanciare_cpu.valore + sig_carta_giocata_pl.valore;
+								read_once := '1';
+							end if;
 							byte_result := "01110000"; -- tocca al giocatore, ha preso il giocatore
 						end if;
 					else 
 						risultato := valutaPresa(sig_carta_giocata_pl, sig_carta_da_lanciare_cpu);
 						if(risultato) then 
-							punti_player <= punti_player + sig_carta_da_lanciare_cpu.valore + sig_carta_giocata_pl.valore;
+							if(read_once = '0') then
+								pt_PL := pt_PL + sig_carta_da_lanciare_cpu.valore + sig_carta_giocata_pl.valore;
+								read_once := '1';
+							end if;
 							byte_result := "01110000"; -- tocca al giocatore, ha preso il giocatore
 						else
-							punti_cpu <= punti_cpu + sig_carta_da_lanciare_cpu.valore + sig_carta_giocata_pl.valore;
+							if(read_once = '0') then
+								pt_CPU := pt_CPU + sig_carta_da_lanciare_cpu.valore + sig_carta_giocata_pl.valore;
+								read_once := '1';
+							end if;
 							byte_result := "00001111"; -- non tocca al giocatore, ha preso la CPU
 						end if;
 					end if;
 					
+					punti_cpu <= pt_CPU;
+					punti_player <= pt_PL;
 					TX_ENABLE_TOKEN <= INVIA_RISULTATO;
 					sig_token_presa <= reverse_vector(byte_result);
 					FINE_TURNO <= '1';
-					--ASSEGNA_DATA_TRASMITTED_TOKEN_PRESA <= '1';
 				else
 					byte_result := "00000000";
 					FINE_TURNO <= '0';
-					--ASSEGNA_DATA_TRASMITTED_TOKEN_PRESA <= '0';
 				end if;
+			elsif(INVIA_RISULTATO_FINALE = '1') then
+				TX_ENABLE_TOKEN <= '0';
+				sig_punti_cpu(0 to 6) <= reverse_vector(std_logic_vector(to_unsigned(punti_cpu, 7)));
+				sig_punti_cpu(7) <= '1';
+				sig_punti_player(0 to 6) <= reverse_vector(std_logic_vector(to_unsigned(punti_player, 7)));
+				sig_punti_player(7) <= '1';
+				data_transmitted_punti(1 to 8) <= sig_punti_player;
+				data_transmitted_punti(11 to 18) <= sig_punti_cpu;
 			end if;
 		end if;
 	
@@ -374,7 +377,7 @@ begin
 --	LEDGREEN(7) <= TX_ENABLE_CARTA;			
 --	LEDGREEN(6) <= TX_ENABLE_TOKEN;
 	
-	InviaByte : process(CLOCK, TX_ENABLE_CARTA, TX_ENABLE_TOKEN) is
+	InviaByte : process(CLOCK, TX_ENABLE_CARTA, TX_ENABLE_TOKEN, INVIA_RISULTATO_FINALE) is
 		-- Variabili per la trasmissione
 		variable count 				: integer range 0 to 5207 	:= 5207; 	--9600 baud generator variable (50MHz/9600)
 		variable bit_number 		: integer range 0 to 10 	:= 0;  		--start bit+8 data bits+stop bit
@@ -382,10 +385,14 @@ begin
 		variable bit_number_tk		: integer range 0 to 10 	:= 0;  		--start bit+8 data bits+stop bit for token
 		variable count_START 		: integer range 0 to 5207 	:= 5207; 	--9600 baud generator variable (50MHz/9600)
 		variable bit_number_START	: integer range 0 to 10 	:= 0;  		--start bit+8 data bits+stop bit
+		variable count_FINAL		: integer range 0 to 5207 	:= 5207; 	--9600 baud generator variable (50MHz/9600)
+		variable bit_number_FINAL	: integer range 0 to 30 	:= 0;  		--start bit+8 data bits+stop bit (x2 byte)
 		variable byte_not_sent 		: boolean 					:= true;
-		variable byte_not_sent_START		: boolean 			:= true;
+		variable byte_not_sent_START: boolean 					:= true;
 		variable byte_not_sent_tk 	: boolean 					:= true;
+		variable byte_not_sent_FIN 	: boolean 					:= true;
 		variable card_sent			: boolean					:= false;
+		variable token_punti		: std_logic_vector(0 to 7)	:= "00001010";
 	begin
 		if(rising_edge(CLOCK)) then
 		
@@ -464,6 +471,32 @@ begin
 				end if;
 			else
 				byte_not_sent_tk := true;
+			end if;
+			
+			if(INVIA_RISULTATO_FINALE = '1' AND TASTO_PREMUTO = '1') then
+				if (count_FINAL = 5207 AND byte_not_sent_FIN) then
+					if (bit_number_FINAL = 0 OR bit_number_FINAL = 10 OR bit_number_FINAL = 20) then
+						TX_LINE <= '0'; --start bit
+					elsif(bit_number_FINAL = 9 OR bit_number_FINAL = 19 OR bit_number_FINAL = 29) then	
+						TX_LINE <= '1'; -- stop bit
+					elsif(bit_number_FINAL > 0 AND bit_number_FINAL < 10) then
+						TX_LINE <= token_punti(bit_number_FINAL-1);
+					elsif(((bit_number_FINAL > 10) and (bit_number_FINAL < 19)) OR ((bit_number_FINAL > 20) AND (bit_number_FINAL < 29)))  then
+						TX_LINE <= data_transmitted_punti(bit_number_FINAL-11); --8 data bits
+					end if;
+					bit_number_FINAL := bit_number_FINAL + 1;
+					if(bit_number_FINAL = 30) then --resetting the bit number
+						byte_not_sent_FIN := false;
+						bit_number_FINAL := 0;
+					end if;
+				end if;
+					
+				count_FINAL := count_FINAL + 1;
+				if (count_FINAL = 5208) then --resetting the baud generator counter
+					count_FINAL := 0;
+				end if;
+			else 
+				byte_not_sent_FIN := true;
 			end if;
 		end if;
 			

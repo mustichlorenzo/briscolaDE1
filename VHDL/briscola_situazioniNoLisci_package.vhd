@@ -112,16 +112,18 @@ package body briscola_situazioniNoLisci_package is
 	
 	-- resistuisce l'indice della carta con valore più basso 
 	function getCartaPiuBassa(mano : mano_cpu) return integer is
-		variable indice 				:	integer;
+		variable indice 			:	integer;
 		variable carta_piu_bassa	: 	carta;
 	begin
 		carta_piu_bassa := mano(0);
 		indice := 0;
 		
 		for i in 1 to 2 loop
-			if(mano(i).valore < carta_piu_bassa.valore) then
-				carta_piu_bassa := mano(i);
-				indice := i;
+			if(mano(i).numero > 0) then
+				if(mano(i).valore < carta_piu_bassa.valore) then
+					carta_piu_bassa := mano(i);
+					indice := i;
+				end if;
 			end if;
 		end loop;
 		
@@ -144,12 +146,14 @@ package body briscola_situazioniNoLisci_package is
 		-- se esistono carte non carico dello stesse seme del carico restituisce la prima trovata
 		-- la carta più bassa, altrimenti
 		for i in 0 to 2 loop
-			if(mano(i).seme_carta = seme_carico) then
-				if(mano(i).briscola = false) then
-					if(mano(i).valore /= 0 AND mano(i).valore /= 10 AND mano(i).valore /=11) then 
-						indice := i;
-					else 
-						indice := getCartaPiuBassa(mano);
+			if(mano(i).numero > 0) then
+				if(mano(i).seme_carta = seme_carico) then
+					if(mano(i).briscola = false) then
+						if(mano(i).valore /= 0 AND mano(i).valore /= 10 AND mano(i).valore /=11) then 
+							indice := i;
+						else 
+							indice := getCartaPiuBassa(mano);
+						end if;
 					end if;
 				end if;
 			end if;
@@ -170,10 +174,12 @@ package body briscola_situazioniNoLisci_package is
 		indice := 0;
 
 		for i in 0 to 2 loop
-			if (mano(i).valore /= 11 OR mano(i).valore /= 10) then
-				if (NOT mano(i).briscola) then
-					if(mano(i).valore < carta_piu_bassa.valore) then
-						indice := i; 
+			if(mano(i).numero > 0) then
+				if (mano(i).valore /= 11 OR mano(i).valore /= 10) then
+					if (NOT mano(i).briscola) then
+						if(mano(i).valore < carta_piu_bassa.valore) then
+							indice := i; 
+						end if;
 					end if;
 				end if;
 			end if;
@@ -192,9 +198,11 @@ package body briscola_situazioniNoLisci_package is
 		seme_primo_carico := mano(0).seme_carta;
 		
 		for i in 1 to 2 loop 
-			if(mano(i).valore = 11 OR mano(i).valore = 10) then 
-				if(mano(i).seme_carta = seme_primo_carico) then
-					return true;
+			if(mano(i).numero > 0) then
+				if(mano(i).valore = 11 OR mano(i).valore = 10) then 
+					if(mano(i).seme_carta = seme_primo_carico) then
+						return true;
+					end if;
 				end if;
 			end if;
 		end loop;
@@ -208,7 +216,7 @@ package body briscola_situazioniNoLisci_package is
 		variable primo_carico 		: carta;
 		variable altro_carico		: carta;
 	begin 
-		for i in 0 to 2 loop 
+		for i in 0 to 2 loop
 			if(mano(i).valore = 11 OR mano(i).valore = 10) then 
 				primo_carico := mano(i);
 				indice := i;
@@ -269,9 +277,11 @@ package body briscola_situazioniNoLisci_package is
 		variable indice : integer;
 	begin
 		for i in 0 to 2 loop
-			if(mano(i).briscola) then
-				indice:= i;
-			end if; 
+			if(mano(i).numero > 0) then
+				if(mano(i).briscola) then
+					indice:= i;
+				end if;
+			end if;
 		end loop;
 
 		return indice;	
@@ -281,8 +291,9 @@ package body briscola_situazioniNoLisci_package is
 	function isBriscolaConPunti(mano : mano_cpu) return boolean is
 	begin
 		for i in 0 to 2 loop
+			
 			if(mano(i).briscola) then
-				if (mano(i).valore = 10 OR mano(i).valore = 11)then 
+				if (mano(i).valore > 0) then 
 					return true;
 				end if;
 		 	end if;
@@ -296,11 +307,13 @@ package body briscola_situazioniNoLisci_package is
 		variable indice : integer;
 	begin	
 		for i in 0 to 2 loop
-			if(NOT mano(i).briscola) then
-				if(mano(i).numero /= 1 AND mano(i).numero /= 3)then 
-					indice := i;
+			if(mano(i).numero > 0) then
+				if(NOT mano(i).briscola) then
+					if(mano(i).numero /= 1 AND mano(i).numero /= 3)then 
+						indice := i;
+					end if;
 				end if;
-		 	end if;
+			end if;
 		end loop;
 
 		return indice;
@@ -322,20 +335,22 @@ package body briscola_situazioniNoLisci_package is
 		-- se esistono carte non carico dello stesse seme del carico restituisce la prima trovata
 		-- la carta più bassa, altrimenti
 		for i in 0 to 2 loop
-			if(mano(i).seme_carta = seme_carico) then
-				if(mano(i).briscola = false) then
-					if(mano(i).valore /= 10 AND mano(i).valore /= 11) then 
-						indice := i;
-						exit;
-					else 
-						if(isBriscolaConPunti(mano)) then
-					 		indice:= getCartaNonBriscolaNonCarico(mano);
+			if(mano(i).numero > 0) then
+				if(mano(i).seme_carta = seme_carico) then
+					if(mano(i).briscola = false) then
+						if(mano(i).valore /= 10 AND mano(i).valore /= 11) then 
+							indice := i;
 							exit;
-					 	else 
-							indice := getBriscola(mano);
-							exit;
-					end if;
-				end if;	 
+						else 
+							if(isBriscolaConPunti(mano)) then
+								indice:= getCartaNonBriscolaNonCarico(mano);
+								exit;
+							else 
+								indice := getBriscola(mano);
+								exit;
+							end if;
+						end if;
+					end if;	 
 				end if;
 			end if;
 		end loop;
@@ -355,11 +370,13 @@ package body briscola_situazioniNoLisci_package is
 		indice := 0;
 		
 		for i in 1 to 2 loop
-			if(mano(i).briscola) then
-				if (mano(i).valore < carta_piu_bassa.valore) then 
-					carta_piu_bassa := mano(i);
-					indice := i;
-				end if;	
+			if(mano(i).numero > 0) then
+				if(mano(i).briscola) then
+					if (mano(i).valore < carta_piu_bassa.valore) then 
+						carta_piu_bassa := mano(i);
+						indice := i;
+					end if;	
+				end if;
 			end if;
 		end loop;	
 				
@@ -376,17 +393,21 @@ package body briscola_situazioniNoLisci_package is
 	begin 
 		-- inizializza le variabili
 		for i in 0 to 2 loop
-			if(NOT mano(i).briscola) then 
-				carico_piu_alto := mano(i).valore;
-				indice := i;
+			if(mano(i).numero > 0) then
+				if(NOT mano(i).briscola) then 
+					carico_piu_alto := mano(i).valore;
+					indice := i;
+				end if;
 			end if;
 		end loop;
 		
 		for i in 0 to 2 loop
-			if(NOT mano(i).briscola) then
-				if(mano(i).valore > carico_piu_alto) then
-					carico_piu_alto := mano(i).valore;
-					indice := i;			
+			if(mano(i).numero > 0) then
+				if(NOT mano(i).briscola) then
+					if(mano(i).valore > carico_piu_alto) then
+						carico_piu_alto := mano(i).valore;
+						indice := i;			
+					end if;
 				end if;
 			end if;
 		end loop;
@@ -434,8 +455,10 @@ package body briscola_situazioniNoLisci_package is
 		variable num_briscole : integer := 0;
 	begin 
 		for i in 0 to 2 loop
-			if (mano(i).briscola) then
-				num_briscole := num_briscole + 1;
+			if(mano(i).numero > 0) then
+				if (mano(i).briscola) then
+					num_briscole := num_briscole + 1;
+				end if;
 			end if;
 		end loop;
 		
@@ -448,9 +471,11 @@ package body briscola_situazioniNoLisci_package is
 		variable numero_carichi : integer := 0;
 	begin
 		for i in 0 to 2 loop		--le carte della mano devono essere o 3 o asso o il valore della briscola deve essere uguale a false
-			if (NOT mano(i).briscola) then
-				if (mano(i).numero = 3 OR mano(i).numero = 1) 
-					then numero_carichi := numero_carichi + 1;
+			if(mano(i).numero > 0) then
+				if (NOT mano(i).briscola) then
+					if (mano(i).numero = 3 OR mano(i).numero = 1) 
+						then numero_carichi := numero_carichi + 1;
+					end if;
 				end if;
 			end if;
 		end loop;

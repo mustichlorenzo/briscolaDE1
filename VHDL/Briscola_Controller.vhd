@@ -14,6 +14,7 @@ entity Briscola_Controller is
 		
 		LEDRED				: out std_logic_vector(0 to 9);
 		LCD_STATO			: out std_logic_vector(0 to 6);
+		LCD_TURNO			: out std_logic_vector(0 to 6);
 		TASTO_PIGIATO		: in std_logic;
 		
 		MANO_RICEVUTA		: in std_logic;
@@ -23,6 +24,7 @@ entity Briscola_Controller is
 		
 		DECIDI_CARTA		: out std_logic;
 		INVIA_RISULTATO 	: out std_logic;
+		INVIA_RISULTATO_FINALE 	: out std_logic;
 		NUOVO_TURNO			: out std_logic;
 		PENULTIMO_TURNO		: out std_logic
 	);
@@ -31,19 +33,20 @@ end entity;
 
 architecture RTL of Briscola_Controller is
 		type s_briscola is (S_IDLE, S_MANO_RICEVUTA, S_DECIDI_LANCIA_CARTA,
-								S_ASPETTO_TOKEN, S_INVIA_RISULTATO, S_DELAY);
+								S_ASPETTO_TOKEN, S_INVIA_RISULTATO, S_DECRETA_VINCITORE, S_DELAY);
 		signal s_current : s_briscola := S_IDLE; 
 begin
-	
 	LEDRED(3) <= MANO_RICEVUTA;
 	LEDRED(2) <= TOKEN_CPU;
 	LEDRED(1) <= PRESA_CPU;
 	LEDRED(0) <= VALUTA_PRESA;
 	
 	process(CLOCK) is
-		variable numTurni : integer;
+		variable numTurni : integer := 14;
 	begin 
+		
 		if(rising_edge(CLOCK)) then
+			LCD_TURNO <= numberTo7SegmentDisplay(numTurni-10);
 			case s_current is
 				-- STATO 0
 				when S_IDLE =>
@@ -53,6 +56,7 @@ begin
 					INVIA_RISULTATO <= '0';
 					NUOVO_TURNO <= '0';
 					PENULTIMO_TURNO <= '0';
+					INVIA_RISULTATO_FINALE <= '0';
 					
 					if(MANO_RICEVUTA = '1') then
 						s_current <= S_MANO_RICEVUTA;
@@ -75,8 +79,10 @@ begin
 						
 						s_current <= S_DECIDI_LANCIA_CARTA;
 						
-						if(numTurni = 19) then
+						if(numTurni = 17) then
 							PENULTIMO_TURNO <= '1';
+						else
+							PENULTIMO_TURNO <= '0';
 						end if;
 					
 					else 
@@ -136,10 +142,30 @@ begin
 					end if;	
 					
 				when S_DELAY =>
-					s_current <= S_MANO_RICEVUTA;
-					DECIDI_CARTA <= '0';
-					INVIA_RISULTATO <= '0';
-					NUOVO_TURNO <= '1';
+					if(numTurni = 20) then
+						s_current <= S_DECRETA_VINCITORE;
+						DECIDI_CARTA <= '0';
+						INVIA_RISULTATO_FINALE <= '1';
+						NUOVO_TURNO <= '0';
+					else 
+						s_current <= S_MANO_RICEVUTA;
+						DECIDI_CARTA <= '0';
+						INVIA_RISULTATO <= '0';
+						NUOVO_TURNO <= '1';
+						numTurni := numTurni + 1;
+					end if;
+					
+				when S_DECRETA_VINCITORE =>
+					LCD_STATO <= numberTo7SegmentDisplay(5);
+					if(RESET = '1') then
+						s_current <= S_IDLE;
+						DECIDI_CARTA <= '0';
+						INVIA_RISULTATO <= '0';
+						NUOVO_TURNO <= '0';
+						PENULTIMO_TURNO <= '0';
+					else
+						s_current <= S_DECRETA_VINCITORE;
+					end if;
 					
 			end case;
 	

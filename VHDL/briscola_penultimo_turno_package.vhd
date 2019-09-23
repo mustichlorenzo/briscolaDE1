@@ -24,7 +24,7 @@ package body briscola_penultimo_turno_package is
 	function getBriscolaPiuBassa(mano : mano_cpu) return integer is
 		variable indice 		: integer;
 		variable carta_temp 	: carta;
-	begin 
+	begin
 		carta_temp := mano(0);
 		indice := 0;
 		
